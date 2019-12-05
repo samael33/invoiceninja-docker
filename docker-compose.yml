@@ -18,7 +18,7 @@ services:
   db:
     image: mysql:5
     env_file: ./config/.env
-    restart: always
+    #restart: always
     volumes:
       - db:/var/lib/mysql
     networks:
@@ -28,9 +28,9 @@ services:
     image: invoiceninja:dev
     build:
       context: .
-      dockerfile: ./config/Dockerfile.invoiceninja
+      dockerfile: Dockerfile.invoiceninja
     env_file: ./config/.env
-    restart: always
+    #restart: always
     depends_on:
       - db
     volumes:
@@ -57,7 +57,7 @@ services:
     image: invoiceninja:dev
     build:
       context: .
-      dockerfile: ./config/Dockerfile.invoiceninja
+      dockerfile: Dockerfile.invoiceninja
     env_file: ./config/.env
     volumes:
       -  app-data:/var/www/app
