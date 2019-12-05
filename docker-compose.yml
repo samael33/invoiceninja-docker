@@ -1,13 +1,10 @@
-version: '3.6'
+version: '3'
 
 volumes:
   db:
-  app-data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ./invoiceninja
+
+networks:
+  main:
 
 # uncomment if you want to use external network (example network: "web")
 #networks:
@@ -21,8 +18,10 @@ services:
     #restart: always
     volumes:
       - db:/var/lib/mysql
-    networks:
-      - default
+    networks: 
+      main:
+        aliases: 
+          - db  
 
   app:
     image: invoiceninja:dev
@@ -34,24 +33,27 @@ services:
     depends_on:
       - db
     volumes:
-      -  app-data:/var/www/app
+      -  ./invoiceninja:/var/www/app
     networks: 
-      - default  
+      main:
+        aliases: 
+          - app  
 
   web:
     image: nginx:1
     volumes:
       - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
-      -  app-data:/var/www/app
+      - ./invoiceninja:/var/www/app
     expose: # Expose ports without publishing them to the host machine - they’ll only be accessible to linked services.
       - "80"
     depends_on:
       - app
     ports: # Delete if you want to use reverse proxy
       - 8000:80
-    networks:
-#      - web        # uncomment if you want to use  external network (reverse proxy for example)
-      - default
+    networks: 
+      main:
+        aliases: 
+          - web  
 
   cron:
     image: invoiceninja:dev
@@ -60,7 +62,7 @@ services:
       dockerfile: Dockerfile.invoiceninja
     env_file: ./config/.env
     volumes:
-      -  app-data:/var/www/app
+      - ./invoiceninja:/var/www/app
     entrypoint: |
       bash -c 'bash -s <<EOF
       trap "break;exit" SIGHUP SIGINT SIGTERM
@@ -71,5 +73,7 @@ services:
         sleep 1d
       done
       EOF'
-    networks:
-      - default
+    networks: 
+      main:
+        aliases: 
+          - cron
